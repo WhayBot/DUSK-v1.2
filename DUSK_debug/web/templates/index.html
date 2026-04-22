@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DUSK Smart Vacuum Cleaner - Web Control Panel">
+    <title>DUSK - Control Panel</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header" id="header">
+            <div class="header-brand">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="20" cy="20" r="18" stroke="url(#grad1)" stroke-width="2.5" fill="none"/>
+                        <circle cx="20" cy="20" r="8" fill="url(#grad1)"/>
+                        <path d="M20 4 L20 10" stroke="url(#grad1)" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M20 30 L20 36" stroke="url(#grad1)" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M4 20 L10 20" stroke="url(#grad1)" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M30 20 L36 20" stroke="url(#grad1)" stroke-width="2" stroke-linecap="round"/>
+                        <defs>
+                            <linearGradient id="grad1" x1="0" y1="0" x2="40" y2="40">
+                                <stop offset="0%" stop-color="#6C63FF"/>
+                                <stop offset="100%" stop-color="#00D2FF"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="header-text">
+                    <h1>DUSK</h1>
+                    <p>Dust Unification & Sweeping Keeper</p>
+                </div>
+            </div>
+            <div class="header-status">
+                <div class="connection-dot" id="connectionDot"></div>
+                <span id="connectionText">Connecting...</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Mode Switch -->
+            <section class="card mode-card" id="modeCard">
+                <div class="card-header">
+                    <h2>Operating Mode</h2>
+                </div>
+                <div class="mode-switch-container">
+                    <button class="mode-btn active" id="btnManual" onclick="setMode('manual')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+                            <path d="M12 8v4l3 3"/>
+                        </svg>
+                        Manual
+                    </button>
+                    <button class="mode-btn" id="btnAuto" onclick="setMode('auto')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4h16v16H4z"/>
+                            <path d="M9 9h6v6H9z"/>
+                            <path d="M4 12h5M15 12h5M12 4v5M12 15v5"/>
+                        </svg>
+                        Automatic
+                    </button>
+                </div>
+            </section>
+
+            <!-- Two-column layout -->
+            <div class="grid-layout">
+                <!-- Left Column: Camera + Controls -->
+                <div class="left-column">
+                    <!-- Camera Feed -->
+                    <section class="card camera-card" id="cameraCard">
+                        <div class="card-header">
+                            <h2>Live Camera</h2>
+                            <span class="badge manual-only" id="cameraStatus">OFF</span>
+                        </div>
+                        <div class="camera-container" id="cameraContainer">
+                            <div class="camera-placeholder" id="cameraPlaceholder">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4">
+                                    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2v11z"/>
+                                    <circle cx="12" cy="13" r="4"/>
+                                </svg>
+                                <p>Camera available in Manual mode</p>
+                            </div>
+                            <img id="cameraFeed" src="" alt="Camera Feed" style="display:none;">
+                        </div>
+                    </section>
+
+                    <!-- D-Pad Controls -->
+                    <section class="card controls-card" id="controlsCard">
+                        <div class="card-header">
+                            <h2>Drive Controls</h2>
+                            <span class="badge manual-only">MANUAL</span>
+                        </div>
+                        <div class="dpad-container">
+                            <button class="dpad-btn dpad-up" id="btnForward"
+                                    onmousedown="sendControl('forward')"
+                                    onmouseup="sendControl('stop')"
+                                    ontouchstart="sendControl('forward')"
+                                    ontouchend="sendControl('stop')">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 4l-8 8h5v8h6v-8h5z"/>
+                                </svg>
+                            </button>
+                            <button class="dpad-btn dpad-left" id="btnLeft"
+                                    onmousedown="sendControl('left')"
+                                    onmouseup="sendControl('stop')"
+                                    ontouchstart="sendControl('left')"
+                                    ontouchend="sendControl('stop')">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M4 12l8-8v5h8v6h-8v5z"/>
+                                </svg>
+                            </button>
+                            <button class="dpad-btn dpad-center" id="btnStop"
+                                    onclick="sendControl('stop')">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <rect x="6" y="6" width="12" height="12" rx="2"/>
+                                </svg>
+                            </button>
+                            <button class="dpad-btn dpad-right" id="btnRight"
+                                    onmousedown="sendControl('right')"
+                                    onmouseup="sendControl('stop')"
+                                    ontouchstart="sendControl('right')"
+                                    ontouchend="sendControl('stop')">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M20 12l-8-8v5H4v6h8v5z"/>
+                                </svg>
+                            </button>
+                            <button class="dpad-btn dpad-down" id="btnBackward"
+                                    onmousedown="sendControl('backward')"
+                                    onmouseup="sendControl('stop')"
+                                    ontouchstart="sendControl('backward')"
+                                    ontouchend="sendControl('stop')">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 20l8-8h-5V4h-6v8H4z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Right Column: Status + Controls -->
+                <div class="right-column">
+                    <!-- Battery Status -->
+                    <section class="card battery-card" id="batteryCard">
+                        <div class="card-header">
+                            <h2>Battery</h2>
+                        </div>
+                        <div class="battery-display">
+                            <div class="battery-icon-container">
+                                <div class="battery-icon">
+                                    <div class="battery-level" id="batteryLevel" style="width: 0%"></div>
+                                </div>
+                                <div class="battery-cap"></div>
+                            </div>
+                            <div class="battery-info">
+                                <span class="battery-percent" id="batteryPercent">--%</span>
+                                <span class="battery-voltage" id="batteryVoltage">--V</span>
+                                <span class="battery-current" id="batteryCurrent">--A</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Vacuum Control -->
+                    <section class="card vacuum-card" id="vacuumCard">
+                        <div class="card-header">
+                            <h2>Vacuum Motor</h2>
+                            <span class="badge" id="vacuumStatus">OFF</span>
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" min="0" max="100" value="0"
+                                   class="speed-slider" id="vacuumSlider"
+                                   oninput="updateVacuumSpeed(this.value)">
+                            <div class="slider-labels">
+                                <span>0%</span>
+                                <span id="vacuumSpeedLabel">0%</span>
+                                <span>100%</span>
+                            </div>
+                        </div>
+                        <div class="btn-row">
+                            <button class="action-btn success" id="btnVacuumStart" onclick="vacuumAction('start')">Start</button>
+                            <button class="action-btn danger" id="btnVacuumStop" onclick="vacuumAction('stop')">Stop</button>
+                        </div>
+                    </section>
+
+                    <!-- Sweeper Control -->
+                    <section class="card sweeper-card" id="sweeperCard">
+                        <div class="card-header">
+                            <h2>Sweeper Motors</h2>
+                            <span class="badge" id="sweeperStatus">OFF</span>
+                        </div>
+                        <div class="btn-row">
+                            <button class="action-btn toggle-btn" id="btnSweeperToggle" onclick="toggleSweeper()">
+                                Toggle Sweeper
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Sensor Readings -->
+                    <section class="card sensors-card" id="sensorsCard">
+                        <div class="card-header">
+                            <h2>Sensors</h2>
+                        </div>
+                        <div class="sensor-grid">
+                            <div class="sensor-item">
+                                <span class="sensor-label">ToF Left</span>
+                                <span class="sensor-value" id="tofLeft">-- mm</span>
+                            </div>
+                            <div class="sensor-item">
+                                <span class="sensor-label">ToF Right</span>
+                                <span class="sensor-value" id="tofRight">-- mm</span>
+                            </div>
+                            <div class="sensor-item">
+                                <span class="sensor-label">Heading</span>
+                                <span class="sensor-value" id="heading">--°</span>
+                            </div>
+                            <div class="sensor-item">
+                                <span class="sensor-label">Nav State</span>
+                                <span class="sensor-value" id="navState">IDLE</span>
+                            </div>
+                            <div class="sensor-item">
+                                <span class="sensor-label">Left Speed</span>
+                                <span class="sensor-value" id="speedLeft">-- mm/s</span>
+                            </div>
+                            <div class="sensor-item">
+                                <span class="sensor-label">Right Speed</span>
+                                <span class="sensor-value" id="speedRight">-- mm/s</span>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>DUSK v1.0 &mdash; Dust Unification & Sweeping Keeper</p>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

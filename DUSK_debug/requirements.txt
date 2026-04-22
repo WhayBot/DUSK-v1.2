@@ -1,0 +1,3 @@
+# DUSK Debug Version - Minimal Dependencies
+# No Raspberry Pi libraries needed!
+flask>=3.0
