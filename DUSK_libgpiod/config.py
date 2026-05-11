@@ -44,6 +44,22 @@ INA219_ADDRESS = 0x40
 OLED_ADDRESS = 0x3C
 
 # ==============================================================================
+# IMU SELECTION: "mpu6050" or "gy87"
+# ==============================================================================
+IMU_TYPE = "mpu6050"
+
+# GY-87 Specific Configuration (only used when IMU_TYPE = "gy87")
+HMC5883L_ADDRESS = 0x1E
+BMP180_ADDRESS = 0x77
+FUSION_ALPHA = 0.96
+MAG_DECLINATION = 0.9
+MAG_CALIBRATION = {
+    "x_offset": 0.0,
+    "y_offset": 0.0,
+    "z_offset": 0.0,
+}
+
+# ==============================================================================
 # GPIO PIN ASSIGNMENTS (BCM Numbering = gpiod line offsets)
 # ==============================================================================
 

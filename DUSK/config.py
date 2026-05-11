@@ -34,6 +34,33 @@ INA219_ADDRESS = 0x40
 OLED_ADDRESS = 0x3C
 
 # ==============================================================================
+# IMU SELECTION: "mpu6050" or "gy87"
+# ==============================================================================
+# "mpu6050" = standalone MPU6050 (6-axis gyro + accelerometer)
+# "gy87"    = GY-87 module (MPU6050 + HMC5883L magnetometer + BMP180 barometer)
+IMU_TYPE = "mpu6050"
+
+# GY-87 Specific Configuration (only used when IMU_TYPE = "gy87")
+HMC5883L_ADDRESS = 0x1E          # HMC5883L magnetometer
+BMP180_ADDRESS = 0x77            # BMP180 barometer
+
+# Sensor Fusion (complementary filter)
+FUSION_ALPHA = 0.96              # 0.96 = 96% gyro, 4% magnetometer per update
+
+# Magnetic declination for Gombong, Kebumen, Central Java, Indonesia
+# Coordinates: 7.6 S, 109.5 E | WMM 2025-2030 model
+# Positive = East declination
+MAG_DECLINATION = 0.9            # degrees East
+
+# Hard-iron magnetometer calibration offsets
+# Run calibrate_magnetometer() and paste results here
+MAG_CALIBRATION = {
+    "x_offset": 0.0,
+    "y_offset": 0.0,
+    "z_offset": 0.0,
+}
+
+# ==============================================================================
 # GPIO PIN ASSIGNMENTS (BCM Numbering)
 # ==============================================================================
 

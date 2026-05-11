@@ -20,7 +20,12 @@ import threading
 
 import config
 from i2c_mux import get_mux
-from sensors.mpu6050 import MPU6050
+
+# Auto-select IMU driver based on config
+if config.IMU_TYPE == "gy87":
+    from sensors.gy87 import GY87 as IMUDriver
+else:
+    from sensors.mpu6050 import MPU6050 as IMUDriver
 from sensors.vl53l0x import DualVL53L0X
 from sensors.ina219 import INA219
 from sensors.encoders import DualEncoders
@@ -68,9 +73,16 @@ class DUSK:
         print("[INIT] I2C Multiplexer: OK")
 
     def _init_sensors(self):
-        print("[INIT] MPU6050 (Gyro + Accelerometer) [SIMULATED]...")
-        self.imu = MPU6050()
-        print("[INIT] MPU6050: OK")
+        imu_label = "GY-87" if config.IMU_TYPE == "gy87" else "MPU6050"
+        print(f"[INIT] {imu_label} (IMU) [SIMULATED]...")
+        self.imu = IMUDriver()
+        print(f"[INIT] {imu_label}: OK")
+
+        if config.IMU_TYPE == "gy87" and hasattr(self.imu, 'get_sensor_info'):
+            info = self.imu.get_sensor_info()
+            print(f"  HMC5883L: {'OK' if info['hmc5883l'] else 'N/A'}")
+            print(f"  BMP180:   {'OK' if info['bmp180'] else 'N/A'}")
+            print(f"  Fusion:   {'ON' if info['fusion'] else 'OFF'}")
 
         print("[INIT] VL53L0X ToF sensors (Left + Right) [SIMULATED]...")
         self.tof = DualVL53L0X()

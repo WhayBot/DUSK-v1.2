@@ -126,14 +126,28 @@ class RobotInterface:
             distances = {"left_mm": 0, "right_mm": 0}
 
         # Lightweight local reads (no I2C, just cached values)
+        imu_data = {
+            "heading": round(self.imu.get_heading(), 1),
+        }
+
+        # Add GY-87 extra data if available
+        if hasattr(self.imu, 'get_fused_heading'):
+            imu_data["fused_heading"] = round(self.imu.get_fused_heading(), 1)
+        if hasattr(self.imu, 'get_mag_heading'):
+            mag_h = self.imu.get_mag_heading()
+            if mag_h >= 0:
+                imu_data["mag_heading"] = round(mag_h, 1)
+        if hasattr(self.imu, 'get_temperature_bmp'):
+            imu_data["temperature_bmp"] = round(self.imu.get_temperature_bmp(), 1)
+        if hasattr(self.imu, 'get_sensor_info'):
+            imu_data["sensor_type"] = self.imu.get_sensor_info().get("type", "MPU6050")
+
         status = {
             "mode": self.mode,
             "battery": battery,
             "navigation": self.navigator.get_status() if self.navigator else {},
             "distances": distances,
-            "imu": {
-                "heading": round(self.imu.get_heading(), 1),
-            },
+            "imu": imu_data,
             "vacuum": self.vacuum.get_status(),
             "sweeper": self.sweeper.get_status(),
             "encoders": self.encoders.get_status(),
