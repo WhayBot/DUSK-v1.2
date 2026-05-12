@@ -214,27 +214,11 @@ def check_i2c_devices(diag):
         except Exception as e:
             diag.fail(name, f"Channel select failed: {e}", f"0x{addr:02X}")
 
-    # Also scan for any unexpected devices
-    print(f"      Scanning for unexpected devices...")
-    for ch in range(8):
-        try:
-            bus.write_byte(0x70, 1 << ch)
-            time.sleep(0.005)
-            for addr in range(0x08, 0x78):
-                if ch in expected and addr == expected[ch]["addr"]:
-                    continue
-                # Skip known bypass addresses on channel 0
-                if ch == 0 and addr in (0x1E, 0x0D, 0x77):
-                    continue
-                try:
-                    bus.read_byte(addr)
-                    if addr != 0x70:  # Don't report the mux itself
-                        diag.warn(f"Unknown device Ch{ch}",
-                                  f"Unexpected device found", f"0x{addr:02X}")
-                except Exception:
-                    pass
-        except Exception:
-            pass
+    # Disable all mux channels before closing
+    try:
+        bus.write_byte(0x70, 0x00)
+    except Exception:
+        pass
 
     bus.close()
 
@@ -249,7 +233,7 @@ def _check_gy87_bypass(bus, mpu_addr, bypass_addrs, diag):
         time.sleep(0.01)
         # Enable bypass
         bus.write_byte_data(mpu_addr, 0x37, 0x02)
-        time.sleep(0.01)
+        time.sleep(0.05)  # Give bypass more time to settle
 
         for addr, name in bypass_addrs:
             try:
@@ -269,8 +253,17 @@ def _check_gy87_bypass(bus, mpu_addr, bypass_addrs, diag):
                     diag.warn(name,
                               "Not found (standalone MPU6050?)", f"0x{addr:02X}")
 
+        # Disable bypass mode to prevent phantom devices on subsequent scans
+        bus.write_byte_data(mpu_addr, 0x37, 0x00)
+        time.sleep(0.01)
+
     except Exception as e:
         print(f"      Bypass mode failed: {e}")
+        # Try to disable bypass even on error
+        try:
+            bus.write_byte_data(mpu_addr, 0x37, 0x00)
+        except Exception:
+            pass
 
 
 # ===========================================================================
