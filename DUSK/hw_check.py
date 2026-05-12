@@ -417,18 +417,22 @@ def check_conflicts(diag):
 
     # Check I2C virtual bus overlay
     try:
-        for cfg_path in ["/boot/config.txt", "/boot/firmware/config.txt"]:
+        overlay_found = False
+        for cfg_path in ["/boot/firmware/config.txt", "/boot/config.txt"]:
             if os.path.exists(cfg_path):
                 with open(cfg_path, "r") as f:
                     config_txt = f.read()
                 if "i2c-gpio" in config_txt and "bus=3" in config_txt:
-                    diag.ok("I2C GPIO Overlay", f"dtoverlay=i2c-gpio found in {cfg_path}")
-                else:
-                    diag.warn("I2C GPIO Overlay",
-                              f"dtoverlay=i2c-gpio,bus=3 not found in {cfg_path}")
-                break
-        else:
-            diag.skip("I2C GPIO Overlay", "Could not find config.txt")
+                    diag.ok("I2C GPIO Overlay", f"Found in {cfg_path}")
+                    overlay_found = True
+                    break
+        if not overlay_found:
+            # Bus 3 works (proven by earlier test), so overlay is active somewhere
+            if os.path.exists("/dev/i2c-3"):
+                diag.ok("I2C GPIO Overlay", "Bus 3 active (/dev/i2c-3 exists)")
+            else:
+                diag.warn("I2C GPIO Overlay",
+                          "dtoverlay=i2c-gpio,bus=3 not found in config.txt")
     except Exception:
         diag.skip("I2C GPIO Overlay", "Could not read config.txt")
 
