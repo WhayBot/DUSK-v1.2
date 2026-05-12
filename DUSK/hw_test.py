@@ -132,11 +132,38 @@ def test_oled():
 # ===================================================================
 def test_tof():
     _print_header("VL53L0X Time-of-Flight Test")
+
+    # Raw diagnostic probe first (same method as hw_check)
+    print("  [PRE-CHECK] Raw I2C probe (like hw_check)...")
+    try:
+        import smbus2
+        bus = smbus2.SMBus(3)
+
+        for ch, name in [(3, "Left"), (4, "Right")]:
+            bus.write_byte(0x70, 1 << ch)
+            time.sleep(0.02)  # Extra settle time for bit-banged I2C
+            try:
+                bus.read_byte(0x29)
+                # Now try register read (this is what the driver does)
+                time.sleep(0.01)
+                model_id = bus.read_byte_data(0x29, 0xC0)
+                print(f"    Ch{ch} ({name}): ACK=OK, Model ID=0x{model_id:02X} "
+                      f"{'OK' if model_id == 0xEE else 'MISMATCH!'}")
+            except Exception as e:
+                print(f"    Ch{ch} ({name}): {_C.RED}FAIL - {e}{_C.RESET}")
+
+        bus.write_byte(0x70, 0x00)  # Disable all channels
+        bus.close()
+    except Exception as e:
+        print(f"    {_C.RED}Raw probe failed: {e}{_C.RESET}")
+
+    print()
+
     from sensors.vl53l0x import DualVL53L0X
 
     tof = None
     try:
-        print("  Initializing ToF sensors...")
+        print("  Initializing ToF sensors via driver...")
         tof = DualVL53L0X()
 
         print("  Reading live distances (move your hand in front of sensors):")
