@@ -18,6 +18,7 @@ import sys
 import os
 import time
 import signal
+import subprocess
 import threading
 
 # Ensure we can import project modules
@@ -599,12 +600,40 @@ def print_menu():
     print()
 
 
+def _check_bus_health():
+    """Check if I2C bus SDA is stuck LOW and attempt recovery."""
+    try:
+        result = subprocess.run(
+            ["pinctrl", "get", "5"], capture_output=True, text=True
+        )
+        if "lo" in result.stdout:
+            print(f"  {_C.YELLOW}SDA (GPIO 5) is stuck LOW! Running bus recovery...{_C.RESET}")
+            recovery_script = os.path.join(os.path.dirname(__file__), "bus_recovery.py")
+            subprocess.run(["sudo", sys.executable, recovery_script])
+            # Verify
+            result = subprocess.run(
+                ["pinctrl", "get", "5"], capture_output=True, text=True
+            )
+            if "lo" in result.stdout:
+                print(f"  {_C.RED}Recovery failed. Try: sudo reboot{_C.RESET}")
+                return False
+            print(f"  {_C.GREEN}Bus recovered!{_C.RESET}")
+        return True
+    except Exception:
+        return True  # Skip check if pinctrl not available
+
+
 def main():
     # Check if running on Pi
     if not os.path.exists("/proc/device-tree/model"):
         print(f"\n  {_C.YELLOW}Not running on Raspberry Pi.{_C.RESET}")
         print(f"  {_C.YELLOW}Use DUSK_debug/ for simulation testing.{_C.RESET}\n")
         sys.exit(0)
+
+    # Check I2C bus health before anything else
+    print("Checking I2C bus health...")
+    if not _check_bus_health():
+        sys.exit(1)
 
     # Initialize I2C mux once
     print("Initializing I2C multiplexer...")
