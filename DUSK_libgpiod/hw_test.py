@@ -23,7 +23,22 @@ import threading
 # Ensure we can import project modules
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import config
+import i2c_mux
 from i2c_mux import get_mux
+
+
+def _reset_mux():
+    """
+    Reset the I2C mux singleton so the next test gets a fresh connection.
+    Needed because some drivers (luma.oled) close the I2C bus on cleanup,
+    which corrupts the shared mux connection.
+    """
+    if i2c_mux._mux_instance is not None:
+        try:
+            i2c_mux._mux_instance.close()
+        except Exception:
+            pass
+        i2c_mux._mux_instance = None
 
 # Auto-select IMU driver
 if config.IMU_TYPE == "gy87":
@@ -102,7 +117,14 @@ def test_oled():
         print(f"\n  {_C.RED}OLED test failed: {e}{_C.RESET}")
     finally:
         if oled:
-            oled.cleanup()
+            oled.stop()
+            # Don't call oled.cleanup() -- it closes the I2C bus
+            # and breaks other tests. Clear the displays instead.
+            try:
+                oled._device_left.clear()
+                oled._device_right.clear()
+            except Exception:
+                pass
 
 
 # ===================================================================
@@ -585,6 +607,7 @@ def main():
         if 1 <= num <= len(TESTS):
             _stop_test.clear()
             name, func = TESTS[num - 1]
+            _reset_mux()  # Fresh I2C connection for each test
             try:
                 func()
             except KeyboardInterrupt:
